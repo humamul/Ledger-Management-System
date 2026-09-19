@@ -7,10 +7,12 @@ import com.skillovilla.application.repository.ItemRepository;
 import com.skillovilla.application.repository.StockMovementRepository;
 import com.skillovilla.application.repository.WarehouseRepository;
 import com.skillovilla.application.service.StockMovementService;
+import com.skillovilla.application.utility.SecurityConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +25,19 @@ public class StockMovementServiceImpl implements StockMovementService {
     @Override
     public StockMovement create(StockMovement stockMovement) {
         Item item = itemRepository.findById(stockMovement.getItem().getId())
-                .orElseThrow(() -> new RuntimeException("Item not found with id: " + stockMovement.getItem().getId()));
+                 .orElseThrow(() -> new RuntimeException("Item not found with id: " + stockMovement.getItem().getId()));
 
         Warehouse warehouse = warehouseRepository.findById(stockMovement.getWarehouse().getId())
                 .orElseThrow(() -> new RuntimeException("Warehouse not found with id: " + stockMovement.getWarehouse().getId()));
+        if(Objects.equals(stockMovement.getMovementType(), SecurityConstant.IN_MOVEMENT)
+                || Objects.equals(stockMovement.getMovementType(),SecurityConstant.OUT_MOVEMENT)){
 
-        stockMovement.setItem(item);
-        stockMovement.setWarehouse(warehouse);
-        stockMovement.init();
+        }
+        if(Objects.equals(stockMovement.getMovementType(), SecurityConstant.IN_MOVEMENT)
+                || Objects.equals(stockMovement.getMovementType(),SecurityConstant.OUT_MOVEMENT)){
+
+        }
+        stockMovement.init(item,warehouse);
         return stockMovementRepository.save(stockMovement);
     }
 

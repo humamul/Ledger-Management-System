@@ -47,4 +47,10 @@ public class StockMovement extends BaseEntity {
         super.init();
         if (this.movementDate == null) this.movementDate = LocalDateTime.now();
     }
+
+    public void init(Item item, Warehouse warehouse) {
+        super.init();
+        this.item = item;
+        this.warehouse = warehouse;
+    }
 }
