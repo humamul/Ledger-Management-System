@@ -6,15 +6,16 @@ import com.skillovilla.application.exception.ResourceNotFoundException;
 import com.skillovilla.application.repository.WarehouseRepository;
 import com.skillovilla.application.service.WarehouseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class WarehouseServiceImpl implements WarehouseService {
 
-    private final WarehouseRepository warehouseRepository;
+    @Autowired
+    private WarehouseRepository warehouseRepository;
 
     @Override
     public Warehouse create(Warehouse warehouse) {

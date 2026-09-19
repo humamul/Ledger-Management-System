@@ -14,11 +14,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
     @Autowired
-    private final ItemRepository itemRepository;
+    private ItemRepository itemRepository;
 
     @Override
     public Item create(Item item) {

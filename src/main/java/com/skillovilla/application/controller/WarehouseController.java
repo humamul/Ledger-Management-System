@@ -4,16 +4,17 @@ import com.skillovilla.application.dto.PagedResponseDto;
 import com.skillovilla.application.dto.WarehouseDto;
 import com.skillovilla.application.facade.WarehouseFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/warehouses")
-@RequiredArgsConstructor
 public class WarehouseController {
 
-    private final WarehouseFacade facade;
+    @Autowired
+    private WarehouseFacade facade;
 
     @PostMapping
     public ResponseEntity<WarehouseDto> create(@RequestBody WarehouseDto dto) {

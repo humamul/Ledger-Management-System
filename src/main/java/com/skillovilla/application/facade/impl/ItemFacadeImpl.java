@@ -18,14 +18,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class ItemFacadeImpl implements ItemFacade {
 
     @Autowired
-    private final ItemDTOAssembler assembler;
+    private ItemDTOAssembler assembler;
 
     @Autowired
-    private final ItemService service;
+    private ItemService service;
 
     @Override
     public ItemDto create(ItemDto dto) {
