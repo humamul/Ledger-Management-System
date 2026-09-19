@@ -1,13 +1,10 @@
 package com.skillovilla.application.facade;
 
+import com.skillovilla.application.dto.PagedResponseDto;
 import com.skillovilla.application.dto.WarehouseDto;
-
-import java.util.List;
 
 public interface WarehouseFacade {
     WarehouseDto create(WarehouseDto dto);
-    List<WarehouseDto> getAll();
-    WarehouseDto getById(Long id);
-    WarehouseDto update(Long id, WarehouseDto dto);
-    void delete(Long id);
+    PagedResponseDto<WarehouseDto> getAll(int page, int size, String sortBy, String sortOrder, Boolean isDisabled);
+    WarehouseDto disable(String code);
 }

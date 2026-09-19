@@ -13,12 +13,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Item extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "code", unique = true)
+    @Column(name = "code", unique = true, nullable = false)
     private String code;
 
     @Column(name = "name")
@@ -27,15 +28,19 @@ public class Item extends BaseEntity {
     @Column(name = "unit")
     private String unit;
 
+    @Column(name = "is_disabled", nullable = false)
+    private Boolean isDisabled;
+
     public void update(Item other) {
-        if (other.getCode() != null) this.code = other.getCode();
         if (other.getName() != null) this.name = other.getName();
         if (other.getUnit() != null) this.unit = other.getUnit();
         this.setUpdatedAt(LocalDateTime.now());
     }
 
+
     public void init() {
         super.init();
+        if (this.isDisabled == null) this.isDisabled = false;
     }
 
 }

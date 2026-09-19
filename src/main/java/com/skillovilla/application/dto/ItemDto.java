@@ -13,4 +13,5 @@ public class ItemDto {
     private String code;
     private String name;
     private String unit;
+    private Boolean isDisabled;
 }
