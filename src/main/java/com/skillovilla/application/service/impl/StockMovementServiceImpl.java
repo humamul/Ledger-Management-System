@@ -36,6 +36,8 @@ public class StockMovementServiceImpl implements StockMovementService {
 
     @Override
     public StockMovement create(StockMovement stockMovement) {
+        stockMovement.setId(null);
+        
         Item item = itemService.getById(stockMovement.getItem().getId());
         if (Boolean.TRUE.equals(item.getIsDisabled())) {
             throw new ResourceNotFoundException("Cannot record movement for disabled itemId: " + item.getId());
@@ -45,23 +47,37 @@ public class StockMovementServiceImpl implements StockMovementService {
         if (Boolean.TRUE.equals(warehouse.getIsDisabled())) {
             throw new ResourceNotFoundException("Cannot record movement for disabled warehouseId: "+warehouse.getId());
         }
+        Warehouse destinationWarehouse = null;
+        if (stockMovement.getDestinationWarehouse() != null && stockMovement.getDestinationWarehouse().getId() != null) {
+             destinationWarehouse = warehouseService.getById(stockMovement.getDestinationWarehouse().getId());
+        }
 
         if(Objects.equals(stockMovement.getMovementType(), SecurityConstant.IN_MOVEMENT)){
-           return saveInMovementStock(stockMovement,item,warehouse);
+           return saveInMovementStock(stockMovement,item,warehouse,destinationWarehouse);
         }
         else if(Objects.equals(stockMovement.getMovementType(),SecurityConstant.OUT_MOVEMENT)){
-
-            return saveOutMovementStock(stockMovement,item,warehouse);
+            return saveOutMovementStock(stockMovement,item,warehouse,destinationWarehouse);
         }
-        stockMovement.init(item,warehouse);
-        return null;
+        else if(Objects.equals(stockMovement.getMovementType(),SecurityConstant.TRANSFER_MOVEMENT)){
+            return saveTransferMovementStock(stockMovement,item,warehouse,destinationWarehouse);
+        } else {
+            throw new RuntimeException("Give proper Value of Movement Type");
+        }
     }
 
-    private StockMovement saveOutMovementStock(StockMovement stockMovement, Item item, Warehouse warehouse) {
+
+    @Override
+    public List<StockMovement> createInBulk(List<StockMovement> stockMovements) {
+        return stockMovements.stream()
+                .map(this::create)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private StockMovement saveOutMovementStock(StockMovement stockMovement, Item item, Warehouse warehouse, Warehouse destinationWarehouse) {
 
             int requestedQty = stockMovement.getQuantity();
 
-            stockMovement.init(item, warehouse);
+            stockMovement.init(item, warehouse, destinationWarehouse);
             stockMovement.setQuantity(requestedQty);
             stockMovement.setUnitPrice(null);
 
@@ -103,14 +119,60 @@ public class StockMovementServiceImpl implements StockMovementService {
             return savedOut;
         }
 
-    private StockMovement saveInMovementStock(StockMovement stockMovement, Item item, Warehouse warehouse) {
-        stockMovement.init(item,warehouse);
+    private StockMovement saveInMovementStock(StockMovement stockMovement, Item item, Warehouse warehouse,Warehouse destinationWarehouse) {
+        stockMovement.init(item, warehouse, destinationWarehouse);
         return stockMovementRepository.save(stockMovement);
     }
 
     @Override
-    public List<StockMovement> getAll() {
-        return stockMovementRepository.findAll();
+    public org.springframework.data.domain.Page<StockMovement> getAll(org.springframework.data.domain.Pageable pageable) {
+        return stockMovementRepository.findAll(pageable);
+    }
+    private StockMovement saveTransferMovementStock(StockMovement stockMovement, Item item, Warehouse sourceWarehouse, Warehouse destinationWarehouse) {
+        if (destinationWarehouse == null) {
+            throw new RuntimeException(" Destination warehouse is required for transfer");
+        }
+
+        if (Boolean.TRUE.equals(destinationWarehouse.getIsDisabled())) {
+            throw new ResourceNotFoundException("Cannot transfer to disabled warehouseId: " + destinationWarehouse.getId());
+        }
+
+        if (Objects.equals(sourceWarehouse.getId(), destinationWarehouse.getId())) {
+            throw new IllegalArgumentException("Source and Destination warehouse cannot be the same");
+        }
+
+        int transferQty = Math.abs(stockMovement.getQuantity());
+
+        StockMovement outMovement = StockMovement.builder()
+                .item(item)
+                .warehouse(sourceWarehouse)
+                .destinationWarehouse(destinationWarehouse)
+                .movementType(SecurityConstant.OUT_MOVEMENT)
+                .quantity(transferQty)
+                .movementDate(stockMovement.getMovementDate() != null ? stockMovement.getMovementDate() : LocalDateTime.now())
+                .referenceDoc(stockMovement.getReferenceDoc())
+                .reason(stockMovement.getReason())
+                .recordedBy(stockMovement.getRecordedBy())
+                .build();
+
+        StockMovement savedOut = saveOutMovementStock(outMovement, item, sourceWarehouse, destinationWarehouse);
+
+        StockMovement inMovement = StockMovement.builder()
+                .item(item)
+                .warehouse(destinationWarehouse)
+                .destinationWarehouse(sourceWarehouse)
+                .movementType(SecurityConstant.IN_MOVEMENT)
+                .quantity(transferQty)
+                .unitPrice(stockMovement.getUnitPrice())
+                .movementDate(stockMovement.getMovementDate() != null ? stockMovement.getMovementDate() : LocalDateTime.now())
+                .referenceDoc(stockMovement.getReferenceDoc())
+                .reason(stockMovement.getReason())
+                .recordedBy(stockMovement.getRecordedBy())
+                .build();
+
+        saveInMovementStock(inMovement, item, destinationWarehouse, sourceWarehouse);
+
+        return savedOut;
     }
 
     @Override

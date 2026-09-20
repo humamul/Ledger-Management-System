@@ -20,4 +20,11 @@ public class StockMovementDto {
     private BigDecimal unitPrice;
     private String referenceDoc;
     private LocalDateTime movementDate;
+
+    // Newly added fields
+    private Long destinationWarehouseId;
+    private String itemName;
+    private String itemUnit;
+    private String reason;
+    private String recordedBy;
 }

@@ -22,9 +22,19 @@ public class StockMovementController {
         return ResponseEntity.status(HttpStatus.CREATED).body(facade.create(dto));
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<StockMovementDto>> createMovementsInBulk(@RequestBody List<StockMovementDto> dtos) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(facade.createInBulk(dtos));
+    }
+
     @GetMapping
-    public ResponseEntity<List<StockMovementDto>> getAll() {
-        return ResponseEntity.ok(facade.getAll());
+    public ResponseEntity<com.skillovilla.application.dto.PagedResponseDto<StockMovementDto>> getAll(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortOrder
+    ) {
+        return ResponseEntity.ok(facade.getAll(page, size, sortBy, sortOrder));
     }
 
     @GetMapping("/{id}")
