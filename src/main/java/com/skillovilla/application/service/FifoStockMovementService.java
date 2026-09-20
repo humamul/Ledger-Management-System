@@ -10,4 +10,6 @@ public interface FifoStockMovementService {
     void saveAll(List<FifoStockMovement> allocations);
 
     int getTotalAllocatedForInMovement(Long inMovementId);
+
+    List<FifoStockMovement> findByOutMovementId(Long outMovementId);
 }

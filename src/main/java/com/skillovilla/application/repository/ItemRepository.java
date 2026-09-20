@@ -13,4 +13,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     boolean existsByCode(String code);
     Optional<Item> findByCode(String code);
     Page<Item> findAllByIsDisabled(Boolean isDisabled, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("SELECT i FROM Item i WHERE i.id = :id")
+    Optional<Item> findByIdForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
 }

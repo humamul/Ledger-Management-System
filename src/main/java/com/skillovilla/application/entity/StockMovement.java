@@ -58,6 +58,10 @@ public class StockMovement extends BaseEntity {
 
     @Column(name = "recorded_by")
     private String recordedBy;
+    
+    @Column(name = "original_movement_id")
+    private Long originalMovementId;
+
     public void init() {
         super.init();
         if (this.movementDate == null) this.movementDate = LocalDateTime.now();

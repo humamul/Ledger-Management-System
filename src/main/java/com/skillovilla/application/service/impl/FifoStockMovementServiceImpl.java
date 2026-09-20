@@ -32,6 +32,12 @@ public class FifoStockMovementServiceImpl implements FifoStockMovementService {
 
     @Override
     public int getTotalAllocatedForInMovement(Long inMovementId) {
-        return fifoStockMovementRepository.getTotalUtilizedForInMovement(inMovementId);
+        Integer total = fifoStockMovementRepository.getTotalUtilizedForInMovement(inMovementId);
+        return total != null ? total : 0;
+    }
+
+    @Override
+    public List<FifoStockMovement> findByOutMovementId(Long outMovementId) {
+        return fifoStockMovementRepository.findByOutMovementId(outMovementId);
     }
 }

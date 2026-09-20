@@ -10,4 +10,5 @@ public interface StockMovementFacade {
     com.skillovilla.application.dto.PagedResponseDto<StockMovementDto> getAll(int page, int size, String sortBy, String sortOrder);
     StockMovementDto getById(Long id);
     void delete(Long id);
+    StockMovementDto cancelMovement(Long id, String reason, String recordedBy);
 }

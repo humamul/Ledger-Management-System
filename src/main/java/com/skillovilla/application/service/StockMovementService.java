@@ -10,4 +10,5 @@ public interface StockMovementService {
     org.springframework.data.domain.Page<StockMovement> getAll(org.springframework.data.domain.Pageable pageable);
     StockMovement getById(Long id);
     void delete(Long id);
+    StockMovement cancelMovement(Long id, String reason, String recordedBy);
 }

@@ -62,4 +62,10 @@ public class ItemServiceImpl implements ItemService {
         item.setIsDisabled(Boolean.TRUE);
         return itemRepository.save(item);
     }
+
+    @Override
+    public Item getByIdForUpdate(Long id) {
+        return itemRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + id));
+    }
 }

@@ -36,10 +36,14 @@ public class FifoStockMovement extends BaseEntity {
     @Column(name = "is_cancelled", nullable = false)
     @Builder.Default
     private Boolean isCancelled = false;
+    
+    @Column(name = "cancelled_date")
+    private LocalDateTime cancelledDate;
 
 
-    public void cancel() {
+    public void cancel(LocalDateTime cancelTime) {
         this.isCancelled = true;
+        this.cancelledDate = cancelTime;
         this.setUpdatedAt(LocalDateTime.now());
     }
 

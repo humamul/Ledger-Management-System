@@ -67,4 +67,10 @@ public class StockMovementFacadeImpl implements StockMovementFacade {
     public void delete(Long id) {
         service.delete(id);
     }
+
+    @Override
+    @Transactional
+    public StockMovementDto cancelMovement(Long id, String reason, String recordedBy) {
+        return assembler.toDto(service.cancelMovement(id, reason, recordedBy));
+    }
 }

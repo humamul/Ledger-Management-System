@@ -13,4 +13,5 @@ public interface ItemService {
     Item update(Long id, Item incoming);
     void delete(Long id);
     Item disable(String code);
+    Item getByIdForUpdate(Long id);
 }

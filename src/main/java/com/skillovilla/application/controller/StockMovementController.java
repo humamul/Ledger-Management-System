@@ -42,9 +42,8 @@ public class StockMovementController {
         return ResponseEntity.ok(facade.getById(id));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        facade.delete(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{id}/cancel")
+    public ResponseEntity<StockMovementDto> cancelMovement(@PathVariable Long id, @RequestParam(required = false) String reason, @RequestParam String recordedBy) {
+        return ResponseEntity.ok(facade.cancelMovement(id, reason, recordedBy));
     }
 }

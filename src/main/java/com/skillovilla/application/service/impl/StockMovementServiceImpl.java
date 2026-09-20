@@ -13,6 +13,7 @@ import com.skillovilla.application.service.WarehouseService;
 import com.skillovilla.application.utility.SecurityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class StockMovementServiceImpl implements StockMovementService {
     private FifoStockMovementService fifoStockMovementService;
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public StockMovement create(StockMovement stockMovement) {
         stockMovement.setId(null);
         
@@ -56,9 +58,11 @@ public class StockMovementServiceImpl implements StockMovementService {
            return saveInMovementStock(stockMovement,item,warehouse,destinationWarehouse);
         }
         else if(Objects.equals(stockMovement.getMovementType(),SecurityConstant.OUT_MOVEMENT)){
+            itemService.getByIdForUpdate(item.getId());
             return saveOutMovementStock(stockMovement,item,warehouse,destinationWarehouse);
         }
         else if(Objects.equals(stockMovement.getMovementType(),SecurityConstant.TRANSFER_MOVEMENT)){
+            itemService.getByIdForUpdate(item.getId());
             return saveTransferMovementStock(stockMovement,item,warehouse,destinationWarehouse);
         } else {
             throw new RuntimeException("Give proper Value of Movement Type");
@@ -67,6 +71,7 @@ public class StockMovementServiceImpl implements StockMovementService {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<StockMovement> createInBulk(List<StockMovement> stockMovements) {
         return stockMovements.stream()
                 .map(this::create)
@@ -183,6 +188,48 @@ public class StockMovementServiceImpl implements StockMovementService {
 
     @Override
     public void delete(Long id) {
-        stockMovementRepository.delete(getById(id));
+        throw new RuntimeException("Movements cannot be deleted. They must be cancelled.");
+    }
+
+    @Override
+    public StockMovement cancelMovement(Long id, String reason, String recordedBy) {
+        StockMovement original = getById(id);
+
+        if (stockMovementRepository.existsByOriginalMovementId(id)) {
+            throw new RuntimeException("Movement is already cancelled");
+        }
+        if (original.getOriginalMovementId() != null) {
+            throw new RuntimeException("Cannot cancel a cancellation movement");
+        }
+
+        StockMovement cancellation = StockMovement.builder()
+                .item(original.getItem())
+                .warehouse(original.getWarehouse())
+                .destinationWarehouse(original.getDestinationWarehouse())
+                .movementType(SecurityConstant.OUT_MOVEMENT.equals(original.getMovementType())
+                        ? SecurityConstant.IN_MOVEMENT 
+                        : SecurityConstant.OUT_MOVEMENT)
+                .quantity(Math.abs(original.getQuantity()))
+                .unitPrice(original.getUnitPrice())
+                .referenceDoc(original.getReferenceDoc())
+                .reason("CANCELLATION of ID " + original.getId() + (reason != null ? ": " + reason : ""))
+                .recordedBy(recordedBy)
+                .movementDate(LocalDateTime.now())
+                .originalMovementId(original.getId())
+                .itemName(original.getItemName())
+                .itemUnit(original.getItemUnit())
+                .build();
+
+        cancellation = stockMovementRepository.save(cancellation);
+
+        if (SecurityConstant.OUT_MOVEMENT.equals(original.getMovementType())) {
+            List<FifoStockMovement> allocations = fifoStockMovementService.findByOutMovementId(original.getId());
+            for (FifoStockMovement allocation : allocations) {
+                allocation.cancel(cancellation.getMovementDate());
+            }
+            fifoStockMovementService.saveAll(allocations);
+        }
+
+        return cancellation;
     }
 }
