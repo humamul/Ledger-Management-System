@@ -6,6 +6,7 @@ import com.skillovilla.application.facade.StockMovementFacade;
 import com.skillovilla.application.service.StockMovementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ public class StockMovementFacadeImpl implements StockMovementFacade {
     private StockMovementService service;
 
     @Override
+    @Transactional
     public StockMovementDto create(StockMovementDto dto) {
         return assembler.toDto(service.create(assembler.toEntity(dto)));
     }

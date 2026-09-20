@@ -1,5 +1,6 @@
 package com.skillovilla.application.service.impl;
 
+import com.skillovilla.application.entity.FifoStockMovement;
 import com.skillovilla.application.entity.Item;
 import com.skillovilla.application.entity.StockMovement;
 import com.skillovilla.application.entity.Warehouse;
@@ -13,6 +14,8 @@ import com.skillovilla.application.utility.SecurityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,11 +50,58 @@ public class StockMovementServiceImpl implements StockMovementService {
            return saveInMovementStock(stockMovement,item,warehouse);
         }
         else if(Objects.equals(stockMovement.getMovementType(),SecurityConstant.OUT_MOVEMENT)){
-            //movement se qty dekhni hogi available h ya nhi uske bad jiski jo quantity hogi wo li jaigi aur phr use save kiya jaiga fifo m
+
+            return saveOutMovementStock(stockMovement,item,warehouse);
         }
         stockMovement.init(item,warehouse);
         return null;
     }
+
+    private StockMovement saveOutMovementStock(StockMovement stockMovement, Item item, Warehouse warehouse) {
+
+            int requestedQty = stockMovement.getQuantity();
+
+            stockMovement.init(item, warehouse);
+            stockMovement.setQuantity(requestedQty);
+            stockMovement.setUnitPrice(null);
+
+            StockMovement savedOut = stockMovementRepository.save(stockMovement);
+
+            List<StockMovement> unexhaustedInMovements = stockMovementRepository
+                    .findUnexhaustedInMovements(item.getId(), warehouse.getId());
+
+            int need = requestedQty;
+            List<FifoStockMovement> allocations = new ArrayList<>();
+
+            for (StockMovement inMovement : unexhaustedInMovements) {
+                if (need <= 0) break;
+
+                int alreadyAllocated = fifoStockMovementService.getTotalAllocatedForInMovement(inMovement.getId());
+                int availableInThisMovement = inMovement.getQuantity() - alreadyAllocated;
+
+                if (availableInThisMovement <= 0) continue;
+
+                int take = Math.min(availableInThisMovement, need);
+
+                allocations.add(FifoStockMovement.builder()
+                        .inMovement(inMovement)
+                        .outMovement(savedOut)
+                        .quantity(take)
+                        .assignDate(LocalDateTime.now())
+                        .isCancelled(false)
+                        .build());
+
+                need -= take;
+            }
+
+            if (need > 0) {
+                throw new ResourceNotFoundException("Insufficient stock! Available stock cannot satisfy requested quantity: " + requestedQty);
+            }
+
+            fifoStockMovementService.saveAll(allocations);
+
+            return savedOut;
+        }
 
     private StockMovement saveInMovementStock(StockMovement stockMovement, Item item, Warehouse warehouse) {
         stockMovement.init(item,warehouse);

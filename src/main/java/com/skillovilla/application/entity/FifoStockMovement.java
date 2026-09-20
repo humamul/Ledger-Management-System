@@ -37,6 +37,7 @@ public class FifoStockMovement extends BaseEntity {
     @Builder.Default
     private Boolean isCancelled = false;
 
+
     public void cancel() {
         this.isCancelled = true;
         this.setUpdatedAt(LocalDateTime.now());
