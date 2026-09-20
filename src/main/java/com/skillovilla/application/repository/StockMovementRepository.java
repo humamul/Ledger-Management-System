@@ -42,5 +42,6 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
                                                    
     boolean existsByOriginalMovementId(Long originalMovementId);
     
-    List<StockMovement> findAllByItemIdAndMovementType(Long itemId, String movementType);
+    @Query("SELECT sm FROM StockMovement sm WHERE sm.item.id = :itemId AND sm.movementType = :movementType")
+    List<StockMovement> findAllByItemIdAndMovementType(@Param("itemId") Long itemId, @Param("movementType") String movementType);
 }

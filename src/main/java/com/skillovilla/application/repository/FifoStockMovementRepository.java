@@ -15,7 +15,9 @@ public interface FifoStockMovementRepository extends JpaRepository<FifoStockMove
             "WHERE f.inMovement.id = :inMovementId AND f.isCancelled = false")
     Integer getTotalUtilizedForInMovement(@Param("inMovementId") Long inMovementId);
 
-    List<FifoStockMovement> findByOutMovementId(Long outMovementId);
+    @Query("SELECT f FROM FifoStockMovement f WHERE f.outMovement.id = :outMovementId")
+    List<FifoStockMovement> findByOutMovementId(@Param("outMovementId") Long outMovementId);
     
-    List<FifoStockMovement> findByInMovementId(Long inMovementId);
+    @Query("SELECT f FROM FifoStockMovement f WHERE f.inMovement.id = :inMovementId")
+    List<FifoStockMovement> findByInMovementId(@Param("inMovementId") Long inMovementId);
 }
