@@ -29,9 +29,7 @@ public class Warehouse extends BaseEntity {
     private Boolean isDisabled;
 
     public void update(Warehouse other) {
-        if (other.getCode() != null) this.code = other.getCode();
         if (other.getName() != null) this.name = other.getName();
-        if (other.getIsDisabled() != null) this.isDisabled = other.getIsDisabled();
         this.setUpdatedAt(LocalDateTime.now());
     }
 

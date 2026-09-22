@@ -1,0 +1,43 @@
+package com.skillovilla.application.service.impl;
+
+import com.skillovilla.application.entity.FifoStockMovement;
+import com.skillovilla.application.entity.StockMovement;
+import com.skillovilla.application.repository.FifoStockMovementRepository;
+import com.skillovilla.application.service.FifoStockMovementService;
+import com.skillovilla.application.service.StockMovementService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class FifoStockMovementServiceImpl implements FifoStockMovementService {
+
+    @Autowired
+    private FifoStockMovementRepository fifoStockMovementRepository;
+
+
+    @Override
+    public FifoStockMovement create(FifoStockMovement fifoStockMovement) {
+        fifoStockMovement.setId(null);
+        fifoStockMovement.init();
+
+        return fifoStockMovementRepository.save(fifoStockMovement);
+    }
+
+    @Override
+    public void saveAll(List<FifoStockMovement> allocations) {
+        fifoStockMovementRepository.saveAll(allocations);
+    }
+
+    @Override
+    public int getTotalAllocatedForInMovement(Long inMovementId) {
+        Integer total = fifoStockMovementRepository.getTotalUtilizedForInMovement(inMovementId);
+        return total != null ? total : 0;
+    }
+
+    @Override
+    public List<FifoStockMovement> findByOutMovementId(Long outMovementId) {
+        return fifoStockMovementRepository.findByOutMovementId(outMovementId);
+    }
+}

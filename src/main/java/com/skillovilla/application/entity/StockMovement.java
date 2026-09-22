@@ -43,8 +43,41 @@ public class StockMovement extends BaseEntity {
     @Column(name = "movement_date")
     private LocalDateTime movementDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_warehouse_id")
+    private Warehouse destinationWarehouse;
+
+    @Column(name = "item_name")
+    private String itemName;
+
+    @Column(name = "item_unit")
+    private String itemUnit;
+
+    @Column(name = "reason")
+    private String reason;
+
+    @Column(name = "recorded_by")
+    private String recordedBy;
+    
+    @Column(name = "original_movement_id")
+    private Long originalMovementId;
+
     public void init() {
         super.init();
         if (this.movementDate == null) this.movementDate = LocalDateTime.now();
+    }
+
+    public void init(Item item, Warehouse warehouse, Warehouse destinationWarehouse) {
+        super.init();
+        this.item = item;
+        this.warehouse = warehouse;
+        this.destinationWarehouse = destinationWarehouse;
+        if (item != null) {
+            this.itemName = item.getName();
+            this.itemUnit = item.getUnit();
+        }
+        if (this.movementDate == null) {
+            this.movementDate = LocalDateTime.now();
+        }
     }
 }

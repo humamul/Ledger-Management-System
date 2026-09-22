@@ -2,9 +2,16 @@ package com.skillovilla.application.facade.impl;
 
 import com.skillovilla.application.assembler.ItemDTOAssembler;
 import com.skillovilla.application.dto.ItemDto;
+import com.skillovilla.application.dto.PagedResponseDto;
+import com.skillovilla.application.entity.Item;
 import com.skillovilla.application.facade.ItemFacade;
 import com.skillovilla.application.service.ItemService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,24 +32,27 @@ public class ItemFacadeImpl implements ItemFacade {
     }
 
     @Override
-    public List<ItemDto> getAll() {
-        return service.getAll().stream()
+    public PagedResponseDto<ItemDto> getAll(int page, int size, String sortBy, String sortOrder, Boolean isDisabled) {
+        Sort sort = Sort.by(
+                "DESC".equalsIgnoreCase(sortOrder) ? Sort.Direction.DESC : Sort.Direction.ASC,
+                sortBy != null ? sortBy : "id"
+        );
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Item> itemPage = service.getAll(isDisabled, pageable);
+
+        List<ItemDto> list = itemPage.getContent().stream()
                 .map(assembler::toDto)
                 .collect(Collectors.toList());
+
+        return PagedResponseDto.<ItemDto>builder()
+                .list(list)
+                .totalElements(itemPage.getTotalElements())
+                .hasNext(itemPage.hasNext())
+                .build();
     }
 
     @Override
-    public ItemDto getById(Long id) {
-        return assembler.toDto(service.getById(id));
-    }
-
-    @Override
-    public ItemDto update(Long id, ItemDto dto) {
-        return assembler.toDto(service.update(id, assembler.toEntity(dto)));
-    }
-
-    @Override
-    public void delete(Long id) {
-        service.delete(id);
+    public ItemDto disable(String code) {
+        return assembler.toDto(service.disable(code));
     }
 }
